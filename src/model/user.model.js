@@ -1,6 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 
 const emailRegesPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const spaceRegesPattern = /\s/;
+
+
 const userSchema =  mongoose.Schema({
     email: {
         type: String,
@@ -8,7 +11,8 @@ const userSchema =  mongoose.Schema({
         validate: {
             validator: function (value) {
                 return emailRegesPattern.test(value);
-            }
+            },
+            message: "Please enter a valid email address",
         },
         unique: true
     },
@@ -24,9 +28,17 @@ const userSchema =  mongoose.Schema({
     },
     nickname: {
         type: String,
+        required: [true, "Nickname is required"],
+        maxLength: [15, "Nickname must be less than 20 characters"],
+        validate: {
+            validator: function (value) {
+                return !spaceRegesPattern.test(value);
+            },
+            message: "Nickname must not contain spaces",
+        },
     }
 }, { timestamps: true, });
 
-const userModel = mongoose.Model("User", userSchema);
+const userModel = mongoose.model("User", userSchema);
 
 export default userModel; 

@@ -6,13 +6,15 @@ export const register = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res
 ) => {
-  const { email, password } = req.body;
+
   try {
     const salt = await bcrypt.genSalt(10);
-    const hashPaswword = await bcrypt.hash(password, salt);
+    const hashPaswword = await bcrypt.hash(req.body.password, salt);
     const newUser = await userModel({
-      email,
+      email: req.body.email,
       password: hashPaswword,
+      phone: req.body.phone,
+      nickname: req.body.nickname,
     });
 
     await newUser.save();
