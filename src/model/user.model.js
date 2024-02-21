@@ -5,7 +5,7 @@ const spaceRegesPattern = /\s/;
 
 const userSchema = mongoose.Schema(
   {
-    first_name: {
+    name: {
       type: String,
       required: [true, "First name is required"],
       maxLength: [20, "First name must be less than 20 characters"],
@@ -14,17 +14,6 @@ const userSchema = mongoose.Schema(
           return !spaceRegesPattern.test(value);
         },
         message: "First name must not contain spaces",
-      },
-    },
-    last_name: {
-      type: String,
-      required: [true, "Last name is required"],
-      maxLength: [20, "Last name must be less than 20 characters"],
-      validate: {
-        validator: function (value) {
-          return !spaceRegesPattern.test(value);
-        },
-        message: "Last name must not contain spaces",
       },
     },
     email: {
@@ -43,11 +32,6 @@ const userSchema = mongoose.Schema(
       required: [true, "Password is required"],
       select: false,
     },
-    phone: {
-      type: String,
-      minLength: [11, "Please enter a valid phone number"],
-      unique: true,
-    },
     nickname: {
       type: String,
       required: [true, "Nickname is required"],
@@ -58,25 +42,28 @@ const userSchema = mongoose.Schema(
         },
         message: "Nickname must not contain spaces",
       },
+      unique: true,
     },
     role: {
       type: String,
       default: "user",
     },
-    no_ID: {
-      type: String,
-      required: [true, "no_ID is required"],
-      unique: true,
-      validate: {
-        validator: function (value) {
-          return !spaceRegesPattern.test(value);
-        },
-        message: "no_ID must not contain spaces",
-      },
-    },
     room: {
       type: Schema.Types.ObjectId,
       ref: "Room",
+    },
+    status: {
+      type: String,
+    },
+    pict_url: {
+      type: String,
+    },
+    challenge_point: {
+      type: Number,
+      default: 0,
+    },
+    qualification: {
+      type: String,
     },
   },
   { timestamps: true }

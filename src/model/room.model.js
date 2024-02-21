@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-const emailRegesPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const spaceRegesPattern = /\s/;
 
 const roomSchema = mongoose.Schema({
@@ -15,7 +14,6 @@ const roomSchema = mongoose.Schema({
       message: "Room name must not contain spaces",
     },
   },
-  challanges: [],
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User",
