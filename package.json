@@ -1,5 +1,5 @@
 {
-  "name": "motionappbackend",
+  "name": "motionbackend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,15 +11,15 @@
   "module": "commonjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/darkRihito/motionappBackend.git"
+    "url": "git+https://github.com/darkRihito/motionBackend.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/darkRihito/motionappBackend/issues"
+    "url": "https://github.com/darkRihito/motionBackend/issues"
   },
-  "homepage": "https://github.com/darkRihito/motionappBackend#readme",
+  "homepage": "https://github.com/darkRihito/motionBackend#readme",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
