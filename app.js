@@ -3,23 +3,33 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+import bodyParser from "body-parser";
+
 // Router import
 import authRouter from "./src/router/auth.router.js";
+import userRouter from "./src/router/user.router.js";
 
-const app = express();
-app.use(express.json());
-app.use(cookieParser());
-app.use(cors());
+// setting up the server
+const server = express();
+server.use(express.json());
+server.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
+server.use(cookieParser());
+server.use(bodyParser.json({ limit: "10mb", extended: true }));
+server.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
-
-// Routes
-app.use("/api", authRouter);
-
-app.get("/", (req, res) => {
+server.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     messages: "API is Working",
   });
 });
 
-export default app;
+server.use("/api", authRouter);
+server.use("/user", userRouter);
+
+export default server;

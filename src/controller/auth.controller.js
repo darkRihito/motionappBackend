@@ -1,5 +1,7 @@
 import userModel from "../model/user.model.js";
+// import bcrypt from 'bcryptjs';
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import ResponseHandler from "../utils/responseHandler.js";
 
 // User registration
@@ -11,13 +13,12 @@ export const register = async (
     const salt = await bcrypt.genSalt(10);
     const hashPaswword = await bcrypt.hash(req.body.password, salt);
     const newUser = await userModel({
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
+      name: req.body.name,
       nickname: req.body.nickname,
       email: req.body.email,
       password: hashPaswword,
-      phone: req.body.phone,
-      no_ID: req.body.no_ID,
+      room: req.body.room,
+      role: req.body.role,
     });
 
     await newUser.save();
@@ -47,6 +48,11 @@ export const login = async (
     if (!isMatch) {
       ResponseHandler.errorResponse(res, 401, "Invalid credentials");
     }
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
     ResponseHandler.successResponse(res, 200, "Login successful", user);
   } catch (error) {
     ResponseHandler.errorResponse(res, 500, error.message);

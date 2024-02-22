@@ -49,8 +49,9 @@ const userSchema = mongoose.Schema(
       default: "user",
     },
     room: {
-      type: Schema.Types.ObjectId,
-      ref: "Room",
+      // type: Schema.Types.ObjectId,
+      // ref: "Room",
+      type: String,
     },
     status: {
       type: String,
