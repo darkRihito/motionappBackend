@@ -1,4 +1,5 @@
 import userModel from "../model/user.model.js";
+import roomModel from "../model/room.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ResponseHandler from "../utils/responseHandler.js";
@@ -6,29 +7,50 @@ import ResponseHandler from "../utils/responseHandler.js";
 // User registration
 export const register = async (
   /** @type import('express').Request */ req,
-  /** @type import('express').Response */ res
+  /** @type import('express').Response */ res,
+  next
 ) => {
   try {
     const salt = await bcrypt.genSalt(10);
     const hashPaswword = await bcrypt.hash(req.body.password, salt);
-    const newUser = await userModel({
-      name: req.body.name,
-      nickname: req.body.nickname,
-      email: req.body.email,
-      password: hashPaswword,
-      room: req.body.room,
-      role: req.body.role,
-    });
-
-    await newUser.save();
-    ResponseHandler.successResponse(
-      res,
-      201,
-      "User created successfully",
-      newUser
-    );
+    let adminRoom;
+    if (req.body.role === "admin") {
+      adminRoom = await roomModel({
+        room_name: req.body.adminroomname,
+      });
+      await adminRoom.save();
+    } else {
+      const checkRoom = await roomModel.findOne({ room_code: req.body.room });
+      if (!checkRoom) {
+        return next(
+          ResponseHandler.errorResponse(
+            res,
+            404,
+            "Room not found, please input a valid room code"
+          )
+        );
+      }
+      const newUser = await userModel({
+        name: req.body.name,
+        nickname: req.body.nickname,
+        email: req.body.email,
+        password: hashPaswword,
+        room: req.body.room,
+        admin_room_name: req.body.adminroomname,
+        role: req.body.role,
+      });
+      await newUser.save();
+      return next(
+        ResponseHandler.successResponse(
+          res,
+          201,
+          "User created successfully",
+          newUser
+        )
+      );
+    }
   } catch (error) {
-    ResponseHandler.errorResponse(res, 500, error.message);
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
 };
 
@@ -50,15 +72,19 @@ export const login = async (
         ResponseHandler.errorResponse(res, 401, "Invalid credentials")
       );
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d' // Set expiration time to 10 seconds
+    });
     res.cookie("access_token", token, {
       httpOnly: true,
       sameSite: "strict",
     });
     const { password: _, ...data } = user._doc;
-    return ResponseHandler.successResponse(res, 200, "Login successful", data);
+    return next(
+      ResponseHandler.successResponse(res, 200, "Login successful", data)
+    );
   } catch (error) {
-    return ResponseHandler.errorResponse(res, 500, error.message);
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
 };
 
@@ -69,8 +95,8 @@ export const logout = async (
 ) => {
   try {
     res.clearCookie("access_token");
-    ResponseHandler.successResponse(res, 200, "Logout successful");
+    return ResponseHandler.successResponse(res, 200, "Logout successful");
   } catch (error) {
-    ResponseHandler.errorResponse(res, 500, error.message);
+    return ResponseHandler.errorResponse(res, 500, error.message);
   }
 };
