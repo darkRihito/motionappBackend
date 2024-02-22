@@ -1,5 +1,4 @@
 import userModel from "../model/user.model.js";
-// import bcrypt from 'bcryptjs';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ResponseHandler from "../utils/responseHandler.js";
@@ -36,26 +35,30 @@ export const register = async (
 // User login
 export const login = async (
   /** @type import('express').Request */ req,
-  /** @type import('express').Response */ res
+  /** @type import('express').Response */ res,
+  /** @type import('express').Response */ next
 ) => {
   const { email, password } = req.body;
   try {
     const user = await userModel.findOne({ email }).select("+password");
     if (!user) {
-      ResponseHandler.errorResponse(res, 404, "User not found");
+      return next(ResponseHandler.errorResponse(res, 404, "User not found"));
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      ResponseHandler.errorResponse(res, 401, "Invalid credentials");
+      return next(
+        ResponseHandler.errorResponse(res, 401, "Invalid credentials")
+      );
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.cookie("access_token", token, {
       httpOnly: true,
       sameSite: "strict",
     });
-    ResponseHandler.successResponse(res, 200, "Login successful", user);
+    const { password: _, ...data } = user._doc;
+    return ResponseHandler.successResponse(res, 200, "Login successful", data);
   } catch (error) {
-    ResponseHandler.errorResponse(res, 500, error.message);
+    return ResponseHandler.errorResponse(res, 500, error.message);
   }
 };
 

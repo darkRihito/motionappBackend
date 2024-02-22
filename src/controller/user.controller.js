@@ -12,24 +12,22 @@ import ResponseHandler from "../utils/responseHandler.js";
 export const getAllUser = async (req, res, next) => {
   try {
     // Fetch all users
-    const users = await userModel.find();
-
+    const users = await userModel.find().select("-password");
     if (!users || users.length === 0) {
       return next(ResponseHandler.errorResponse(res, 404, "No users found"));
     }
 
-    const usersWithoutPasswords = users.map((user) => {
-      const { password, ...userWithoutPassword } = user.toObject
-        ? user.toObject()
-        : user;
-      return userWithoutPassword;
-    });
+    // const usersWithoutPasswords = users.map((user) => {
+    //   const { password, ...userWithoutPassword } = user.toObject
+    //     ? user.toObject()
+    //     : user;
+    //   return userWithoutPassword;
+    // });
 
     return ResponseHandler.successResponse(
       res,
       200,
-      "Users",
-      usersWithoutPasswords
+      users
     );
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));
