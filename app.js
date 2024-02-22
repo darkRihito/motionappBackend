@@ -8,6 +8,7 @@ import bodyParser from "body-parser";
 // Router import
 import authRouter from "./src/router/auth.router.js";
 import userRouter from "./src/router/user.router.js";
+import { isAuthenticated } from "./src/middleware/auth.js";
 
 // setting up the server
 const server = express();
@@ -26,6 +27,12 @@ server.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     messages: "API is Working",
+  });
+});
+server.get("/isauthenticated", isAuthenticated, (req, res) => {
+  res.status(200).json({
+    success: true,
+    messages: "User is authenticated",
   });
 });
 

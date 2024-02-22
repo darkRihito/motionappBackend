@@ -34,7 +34,6 @@ const userSchema = mongoose.Schema(
     },
     nickname: {
       type: String,
-      required: [true, "Nickname is required"],
       maxLength: [15, "Nickname must be less than 20 characters"],
       validate: {
         validator: function (value) {
@@ -49,11 +48,12 @@ const userSchema = mongoose.Schema(
       default: "user",
     },
     room: {
-      // type: Schema.Types.ObjectId,
-      // ref: "Room",
       type: String,
     },
     status: {
+      type: String,
+    },
+    admin_room_name: {
       type: String,
     },
     pict_url: {
