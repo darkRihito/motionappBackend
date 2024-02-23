@@ -24,11 +24,22 @@ export const getAllUser = async (req, res, next) => {
     //   return userWithoutPassword;
     // });
 
-    return ResponseHandler.successResponse(
-      res,
-      200,
-      users
-    );
+    return ResponseHandler.successResponse(res, 200, users);
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
+
+export const getUserId = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  try {
+    const userid = req.user.id;
+    const data = await userModel.findById(userid).exec();
+    console.log(data);
+    return next(ResponseHandler.successResponse(res, 200, "successful", data));
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
