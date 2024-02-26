@@ -8,13 +8,6 @@ const userSchema = mongoose.Schema(
     name: {
       type: String,
       required: [true, "First name is required"],
-      maxLength: [20, "First name must be less than 20 characters"],
-      validate: {
-        validator: function (value) {
-          return !spaceRegesPattern.test(value);
-        },
-        message: "First name must not contain spaces",
-      },
     },
     email: {
       type: String,
@@ -52,12 +45,14 @@ const userSchema = mongoose.Schema(
     },
     status: {
       type: String,
+      default: "",
     },
     admin_room_name: {
       type: String,
     },
     pict_url: {
       type: String,
+      default: "",
     },
     challenge_point: {
       type: Number,
@@ -65,6 +60,7 @@ const userSchema = mongoose.Schema(
     },
     qualification: {
       type: String,
+      default: "?",
     },
   },
   { timestamps: true }
