@@ -9,7 +9,7 @@ import connectDb from "./src/utils/db.js";
 // Router import
 import authRouter from "./src/router/auth.router.js";
 import userRouter from "./src/router/user.router.js";
-import historyRouter from "./src/router/history.router.js"
+import historyRouter from "./src/router/history.router.js";
 import { isAuthenticated } from "./src/middleware/auth.js";
 
 // setting up the server
@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://motion-client.vercel.app"],
   })
 );
 app.use(cookieParser());
