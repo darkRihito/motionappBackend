@@ -15,11 +15,8 @@ export const getAllHistory = async (req, res, next) => {
 
 export const getHistoryId = async (req, res, next) => {
   const userid = req.user.id;
-  console.log(userid);
-
   try {
-    const history = await historyModel.find({ userId: userid }).exec();
-
+    const history = await historyModel.find({ userId: userid }).select("-userId -_id").exec();
     return next(
       ResponseHandler.successResponse(res, 200, "successful", history)
     );
