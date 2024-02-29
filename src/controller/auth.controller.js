@@ -73,11 +73,12 @@ export const login = async (
       );
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d", // Set expiration time to 10 seconds
+      expiresIn: "1d",
     });
     res.cookie("access_token", token, {
       httpOnly: true,
       sameSite: "strict",
+      maxAge: 10 * 60 * 60 * 24,
     });
     const { password: _, ...data } = user._doc;
     return next(
