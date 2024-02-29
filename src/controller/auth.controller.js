@@ -77,7 +77,8 @@ export const login = async (
     });
     res.cookie("access_token", token, {
       httpOnly: true,
-      sameSite: "None",
+      sameSite: "strict",
+      secure,
       // Set cookie to expire in approximately 30 days (30 days * 24 hours/day * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second)
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
