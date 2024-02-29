@@ -66,6 +66,36 @@ const userSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.pre("save", async function (next) {
+  const pictAPI = [
+    "Tinkerbell",
+    "Peanut",
+    "Sammy",
+    "Rascal",
+    "Mimi",
+    "Bandit",
+    "Charlie",
+    "Lucky",
+    "Snowball",
+    "Boots",
+    "Lucy",
+    "Jasmine",
+    "Pepper",
+    "Sasha",
+    "Trouble",
+  ];
+  // Selecting a random element from pictAPI
+  const randomIndex = Math.floor(Math.random() * pictAPI.length);
+  const randomPict = pictAPI[randomIndex];
+
+  if (!this.isNew) {
+    return next();
+  }
+
+  this.pict_url = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${randomPict}`;
+  next();
+});
+
 const userModel = mongoose.model("User", userSchema);
 
 export default userModel;
