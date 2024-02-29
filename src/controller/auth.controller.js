@@ -73,12 +73,13 @@ export const login = async (
       );
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+      expiresIn: '30d', // Expires in 30 days
     });
     res.cookie("access_token", token, {
       httpOnly: true,
       sameSite: "strict",
-      maxAge: 10 * 60 * 60 * 24,
+      // Set cookie to expire in approximately 30 days (30 days * 24 hours/day * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second)
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
     const { password: _, ...data } = user._doc;
     return next(
