@@ -73,14 +73,11 @@ export const login = async (
       );
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "30d", // Expires in 30 days
+      expiresIn: '30d', // Expires in 30 days
     });
     res.cookie("access_token", token, {
       httpOnly: true,
-      // Change SameSite to 'None' and secure to true if your site is accessible over HTTPS and you need cross-origin requests
-      // If testing locally over HTTP, you might need to set SameSite to 'Lax' or even 'None' without secure (not recommended for production)
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
       // Set cookie to expire in approximately 30 days (30 days * 24 hours/day * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second)
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
