@@ -1,7 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-const spaceRegesPattern = /\s/;
-
 const roomSchema = mongoose.Schema({
   room_name: {
     type: String,
@@ -21,15 +19,14 @@ const roomSchema = mongoose.Schema({
   },
 });
 
-roomSchema.pre("save", async function (next) {
-  if (!this.isNew) {
-    return next();
-  }
-
-  const count = await roomModel.countDocuments();
-  this.room_code = `R${(count + 1).toString().padStart(3, "0")}`;
-  next();
-});
+// roomSchema.pre("save", async function (next) {
+//   if (!this.isNew) {
+//     return next();
+//   }
+//   const count = await roomModel.countDocuments();
+//   this.room_code = `R${(count + 1).toString().padStart(3, "0")}`;
+//   next();
+// });
 
 const roomModel = mongoose.model("Room", roomSchema);
 export default roomModel;

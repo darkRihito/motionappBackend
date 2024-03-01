@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const historySchema = mongoose.Schema(
   {
-    userId: {
+    user_id: {
       type: String,
     },
     name: {

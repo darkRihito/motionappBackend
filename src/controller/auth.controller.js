@@ -15,11 +15,43 @@ export const register = async (
     const hashPaswword = await bcrypt.hash(req.body.password, salt);
     let adminRoom;
     if (req.body.role === "admin") {
+      const count = await roomModel.countDocuments();
+      const generatedcode = `R${(count + 1).toString().padStart(3, "0")}`;
+
       adminRoom = await roomModel({
         room_name: req.body.adminroomname,
+        room_code: generatedcode,
       });
-      await adminRoom.save();
+      const response = await adminRoom.save();
+
+      const newAdmin = await userModel({
+        name: req.body.name,
+        email: req.body.email,
+        password: hashPaswword,
+        role: req.body.role,
+        admin_room: response._id,
+      });
+      await newAdmin.save();
+      return next(
+        ResponseHandler.successResponse(
+          res,
+          201,
+          "Admin created successfully",
+          newAdmin
+        )
+      );
     } else {
+      const newUser = await userModel({
+        name: req.body.name,
+        nickname: req.body.nickname,
+        email: req.body.email,
+        password: hashPaswword,
+        room: req.body.room,
+        role: req.body.role,
+        challenge_point: 0,
+        qualification: "?",
+        status: "",
+      });
       const checkRoom = await roomModel.findOne({ room_code: req.body.room });
       if (!checkRoom) {
         return next(
@@ -30,16 +62,11 @@ export const register = async (
           )
         );
       }
-      const newUser = await userModel({
-        name: req.body.name,
-        nickname: req.body.nickname,
-        email: req.body.email,
-        password: hashPaswword,
-        room: req.body.room,
-        admin_room_name: req.body.adminroomname,
-        role: req.body.role,
-      });
+      checkRoom.list_user.push({ userId: newUser._id });
+
       await newUser.save();
+      await checkRoom.save();
+
       return next(
         ResponseHandler.successResponse(
           res,
@@ -58,7 +85,7 @@ export const register = async (
 export const login = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
-  /** @type import('express').Response */ next
+  next
 ) => {
   const { email, password } = req.body;
   try {
@@ -72,17 +99,23 @@ export const login = async (
         ResponseHandler.errorResponse(res, 401, "Invalid credentials")
       );
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '30d', // Expires in 30 days
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+    
     res.cookie("access_token", token, {
       httpOnly: true,
-      sameSite: "strict",
-      secure,
-      // Set cookie to expire in approximately 30 days (30 days * 24 hours/day * 60 minutes/hour * 60 seconds/minute * 1000 milliseconds/second)
+      sameSite: "none",
+      secure: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-    const { password: _, ...data } = user._doc;
+    const { password: _,  ...data } = user._doc;
+    data.token = token;
+    req.user = user;
     return next(
       ResponseHandler.successResponse(res, 200, "Login successful", data)
     );
@@ -94,7 +127,8 @@ export const login = async (
 // User logout
 export const logout = async (
   /** @type import('express').Request */ req,
-  /** @type import('express').Response */ res
+  /** @type import('express').Response */ res,
+  next
 ) => {
   try {
     res.clearCookie("access_token");

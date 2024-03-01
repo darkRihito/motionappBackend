@@ -3,7 +3,7 @@ import { getAllHistory, getHistoryId } from "../controller/history.controller.js
 import { isAuthenticated } from "../middleware/auth.js";
 
 const router = express.Router();
-router.get("/gethistory", isAuthenticated, getAllHistory);
-router.get("/gethistoryid", isAuthenticated, getHistoryId);
+router.get("/history", isAuthenticated, getAllHistory);
+router.get("/historyid", isAuthenticated, getHistoryId);
 
 export default router;
