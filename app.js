@@ -12,6 +12,7 @@ import userRouter from "./src/router/user.router.js";
 import historyRouter from "./src/router/history.router.js";
 import leaderboardRouter from "./src/router/leaderboard.router.js";
 import historychallengeRouter from "./src/router/historychallenge.router.js";
+import questionRouter from "./src/router/question.router.js";
 import { isAuthenticated, isAdmin } from "./src/middleware/auth.js";
 
 // setting up the server
@@ -53,6 +54,7 @@ app.use("/user", userRouter);
 app.use("/history", historyRouter);
 app.use("/leaderboard", leaderboardRouter);
 app.use("/challenge", historychallengeRouter);
+app.use("/question", questionRouter);
 dotenv.config();
 
 if (process.env.NODE_ENV === "production") {

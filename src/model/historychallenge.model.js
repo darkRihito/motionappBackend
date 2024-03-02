@@ -6,7 +6,7 @@ const historyChallengeSchema = mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    type: {
+    category: {
       type: String,
     },
     start_time: {
