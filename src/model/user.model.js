@@ -45,22 +45,19 @@ const userSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      default: "",
-    },
-    admin_room_name: {
-      type: String,
     },
     pict_url: {
       type: String,
-      default: "",
     },
     challenge_point: {
       type: Number,
-      default: 0,
     },
     qualification: {
       type: String,
-      default: "?",
+    },
+    admin_room: {
+      type: Schema.Types.ObjectId,
+      ref: "Room",
     },
   },
   { timestamps: true }

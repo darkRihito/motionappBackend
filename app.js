@@ -10,7 +10,10 @@ import connectDb from "./src/utils/db.js";
 import authRouter from "./src/router/auth.router.js";
 import userRouter from "./src/router/user.router.js";
 import historyRouter from "./src/router/history.router.js";
-import { isAuthenticated } from "./src/middleware/auth.js";
+import leaderboardRouter from "./src/router/leaderboard.router.js";
+import historychallengeRouter from "./src/router/historychallenge.router.js";
+import questionRouter from "./src/router/question.router.js";
+import { isAuthenticated, isAdmin } from "./src/middleware/auth.js";
 
 // setting up the server
 const app = express();
@@ -18,7 +21,9 @@ app.use(express.json());
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000"],
+    origin: "http://localhost:3000",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
   })
 );
 app.use(cookieParser());
@@ -37,10 +42,19 @@ app.get("/isauthenticated", isAuthenticated, (req, res) => {
     messages: "User is authenticated",
   });
 });
+app.get("/isadmin", isAdmin, (req, res) => {
+  res.status(200).json({
+    success: true,
+    messages: "Admin is authenticated",
+  });
+});
 
 app.use("/api", authRouter);
 app.use("/user", userRouter);
 app.use("/history", historyRouter);
+app.use("/leaderboard", leaderboardRouter);
+app.use("/challenge", historychallengeRouter);
+app.use("/question", questionRouter);
 dotenv.config();
 
 if (process.env.NODE_ENV === "production") {
