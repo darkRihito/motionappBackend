@@ -1,5 +1,6 @@
 import historyChallengeModel from "../model/historychallenge.model.js";
 import historyModel from "../model/history.model.js";
+import userModel from "../model/user.model.js";
 import questionModel from "../model/question.model.js";
 import ResponseHandler from "../utils/responseHandler.js";
 
@@ -24,30 +25,12 @@ export const startChallenge = async (
 ) => {
   try {
     const userId = req.user.id;
-    // Cek apakah user hendak melakukan challenge kategori: pretest/latihan/posttest.
     const { category } = req.params;
-    // Cek apakah user sedang aktif dalam challenge lain
-    // const response = await historyChallengeModel.findOne({
-    //   user_id: userId,
-    //   is_finished: false,
-    // });
-    const response = await historyChallengeModel.find();
+    const response = await userModel.findOne({ _id: userId });
 
-    const hasUnfinished = response
-      .filter((item) => item.is_finished === false && item.user_id === userId)
-      .map((item) => item._id);
-
-    const donePretest = response
-      .filter(
-        (item) => item.is_finished === true && item.category === "pretest"
-      )
-      .map((item) => item._id);
-
-    // console.log("HASUNFINISHED", hasUnfinished);
-    // console.log("donePretest", donePretest);
-
-    if (donePretest.length != 0) {
-      console.log("DONE PRETEST");
+    if (!(response.qualification == "?")) {
+      // Done
+      console.log("Sudah menyelesaikan pre-test!");
       return next(
         ResponseHandler.errorResponse(
           res,
@@ -55,28 +38,28 @@ export const startChallenge = async (
           "Anda sudah mengerjakan pretest!"
         )
       );
-    } else if (hasUnfinished.length != 0) {
-      if (response.category == category) {
-        console.log("LANJUT");
+    } else if (response.is_doing_challenge == "pretest") {
+      // Lanjut
+      console.log("User perlu melanjutkan challenge!");
+      const challenge = await historyChallengeModel.findOne({
+        user_id: userId,
+        category: "pretest",
+      });
+      return next(
+        ResponseHandler.successResponse(res, 200, "successful", challenge)
+      );
+    } else if (response.is_doing_challenge == "free") {
+      // Bikin baru
+      console.log("User pertama kali melakukan pre-test");
+      const data = {
+        user_id: userId,
+        category: category,
+      };
+      res.cookie("is_doing_challenge", JSON.stringify(data), {
+        maxAge: 900000,
+        httpOnly: true,
+      });
 
-        return next(
-          ResponseHandler.successResponse(res, 200, "successful", response)
-        );
-      } else {
-        console.log("ADA TES LAIN");
-
-        return next(
-          ResponseHandler.errorResponse(
-            res,
-            500,
-            "Anda sedang mengerjakan challenge lain!"
-          )
-        );
-      }
-    } else {
-      console.log("MASUK");
-
-      // Apabila user sedang tidak dalam proses challenge lain
       const newChallenge = await historyChallengeModel({
         user_id: userId,
         category: category,
@@ -85,6 +68,16 @@ export const startChallenge = async (
       await newChallenge.save();
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newChallenge)
+      );
+    } else {
+      // Dalam challenge lain
+      console.log("User sedang melakukan challenge lain");
+      return next(
+        ResponseHandler.errorResponse(
+          res,
+          500,
+          "Anda sedang mengerjakan challenge lain!"
+        )
       );
     }
   } catch (error) {
@@ -127,7 +120,7 @@ export const endChallenge = async (
 
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
-      { $set: { is_finished: true, end_time: Date.now() } },
+      { $set: { end_time: Date.now() } },
       { new: true }
     );
 
