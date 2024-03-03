@@ -26,58 +26,63 @@ export const startChallenge = async (
   try {
     const userId = req.user.id;
     const { category } = req.params;
-    const response = await userModel.findOne({ _id: userId });
+    const response = await historyChallengeModel.findOne({
+      user_id: userId,
+      category,
+    });
 
-    if (!(response.qualification == "?")) {
-      // Done
-      console.log("Sudah menyelesaikan pre-test!");
-      return next(
-        ResponseHandler.errorResponse(
-          res,
-          500,
-          "Anda sudah mengerjakan pretest!"
-        )
-      );
-    } else if (response.is_doing_challenge == "pretest") {
-      // Lanjut
-      console.log("User perlu melanjutkan challenge!");
-      const challenge = await historyChallengeModel.findOne({
-        user_id: userId,
-        category: "pretest",
-      });
-      return next(
-        ResponseHandler.successResponse(res, 200, "successful", challenge)
-      );
-    } else if (response.is_doing_challenge == "free") {
-      // Bikin baru
+    const cookiesName = `is_doing_challenge:${userId}`;
+    const cookieValue = req.cookies[cookiesName];
+    const is_doing_challenge = cookieValue ? JSON.parse(cookieValue) : null;
+
+    if (is_doing_challenge) {
+      console.log("is doing challenge");
+      if (
+        is_doing_challenge.category.toString() === category &&
+        is_doing_challenge.user_id === userId
+      ) {
+        console.log(is_doing_challenge.category.toString(), category);
+        // cek user sedang mengerjakan challenge tersebut?
+        console.log("sedang mengerjakan");
+        const challenge = await historyChallengeModel.findOne({
+          user_id: userId,
+          category: category,
+        });
+        return next(
+          ResponseHandler.successResponse(res, 200, "successful", challenge)
+        );
+      } else {
+        // user sedang mengerjakan challenge lain
+        console.log(is_doing_challenge.category.toString(), category);
+        console.log("User sedang melakukan challenge lain");
+        return next(
+          ResponseHandler.errorResponse(
+            res,
+            500,
+            "Anda sedang mengerjakan challenge lain!"
+          )
+        );
+      }
+    } else {
+      // user pertama kali challenge by history
       console.log("User pertama kali melakukan pre-test");
-      const data = {
-        user_id: userId,
-        category: category,
-      };
-      res.cookie("is_doing_challenge", JSON.stringify(data), {
-        maxAge: 900000,
-        httpOnly: true,
-      });
-
       const newChallenge = await historyChallengeModel({
         user_id: userId,
         category: category,
         start_time: Date.now(),
       });
       await newChallenge.save();
+      const data = {
+        category: category,
+        start_time: newChallenge.start_time,
+        user_id: newChallenge.user_id,
+      };
+      res.cookie(`is_doing_challenge:${userId}`, JSON.stringify(data), {
+        maxAge: 900000,
+        httpOnly: true,
+      });
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newChallenge)
-      );
-    } else {
-      // Dalam challenge lain
-      console.log("User sedang melakukan challenge lain");
-      return next(
-        ResponseHandler.errorResponse(
-          res,
-          500,
-          "Anda sedang mengerjakan challenge lain!"
-        )
       );
     }
   } catch (error) {
@@ -120,7 +125,7 @@ export const endChallenge = async (
 
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
-      { $set: { end_time: Date.now() } },
+      { $set: { is_finished: true, end_time: Date.now() } },
       { new: true }
     );
 
@@ -143,7 +148,7 @@ export const endChallenge = async (
       result: "OK!",
     });
     await newHistory.save();
-
+    res.clearCookie(`is_doing_challenge:${userId}`);
     return next(
       ResponseHandler.successResponse(
         res,

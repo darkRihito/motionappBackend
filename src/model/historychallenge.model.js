@@ -15,6 +15,10 @@ const historyChallengeSchema = mongoose.Schema(
     end_time: {
       type: Date,
     },
+    is_finished: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
