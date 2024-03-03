@@ -59,6 +59,11 @@ const userSchema = mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "Room",
     },
+    is_doing_challenge: {
+      type: String,
+      enum: ["pretest", "posttest", "latihan", "free"],
+      default: "free",
+    },
   },
   { timestamps: true }
 );
