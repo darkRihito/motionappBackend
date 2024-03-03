@@ -49,6 +49,16 @@ app.get("/isadmin", isAdmin, (req, res) => {
   });
 });
 
+app.post("/clearcookies", isAuthenticated, (req, res) => {
+  // res.clearCookie("access_token");
+  const userId = req.user.id;
+
+  res.clearCookie(`is_doing_challenge:${userId}`).status(200).json({
+    success: true,
+    messages: "Clear cookies success!",
+  });
+});
+
 app.use("/api", authRouter);
 app.use("/user", userRouter);
 app.use("/history", historyRouter);
