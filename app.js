@@ -20,10 +20,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://motion-client.vercel.app", // specify the exact origin
+    origin: true, // specify the exact origin
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    optionsSuccessStatus: 200,
     credentials: true, // include credentials
-    optionsSuccessStatus: 200
   })
 );
 app.use(cookieParser());
