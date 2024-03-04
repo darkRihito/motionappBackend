@@ -44,6 +44,7 @@ export const startChallenge = async (
         console.log(is_doing_challenge.category.toString(), category);
         // cek user sedang mengerjakan challenge tersebut?
         console.log("sedang mengerjakan");
+
         const challenge = await historyChallengeModel.findOne({
           user_id: userId,
           category: category,
@@ -99,7 +100,7 @@ export const endChallenge = async (
   try {
     const userId = req.user.id;
     const { category } = req.params;
-    const { answer } = req.body;
+    const { answer, questionCount } = req.body;
 
     const questionIds = Object.keys(answer).map((id) => id);
 
@@ -121,7 +122,8 @@ export const endChallenge = async (
         correctCount++;
       }
     });
-    const score = (correctCount / questions.length) * 100;
+    const score = (correctCount / questionCount) * 100;
+    const formattedScore = score.toFixed(2);
 
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
@@ -143,8 +145,8 @@ export const endChallenge = async (
     const newHistory = await historyModel({
       user_id: userId,
       name: category,
-      score: score,
-      point: score,
+      score: formattedScore,
+      point: formattedScore,
       result: "OK!",
     });
     await newHistory.save();
