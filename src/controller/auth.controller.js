@@ -108,10 +108,10 @@ export const login = async (
     );
     
     res.cookie("access_token", token, {
-      httpOnly: true,
+      httpOnly: false, // Makes the cookie accessible to client-side JavaScript
       sameSite: "none",
-      secure: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      secure: true, // Recommended to use with sameSite: "none" to ensure cookie is sent over HTTPS
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
     const { password: _,  ...data } = user._doc;
     data.token = token;
