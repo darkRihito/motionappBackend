@@ -26,25 +26,15 @@ export const startChallenge = async (
   try {
     const userId = req.user.id;
     const { category } = req.params;
-    const response = await historyChallengeModel.findOne({
-      user_id: userId,
-      category,
-    });
 
-    const cookiesName = `is_doing_challenge:${userId}`;
-    const cookieValue = req.cookies[cookiesName];
-    const is_doing_challenge = cookieValue ? JSON.parse(cookieValue) : null;
+    const response = await userModel
+      .findOne({ _id: userId })
+      .select("is_doing_challenge pretest_done posttest_done")
+      .exec();
+    const is_doing_challenge = response.is_doing_challenge;
 
-    if (is_doing_challenge) {
-      console.log("is doing challenge");
-      if (
-        is_doing_challenge.category.toString() === category &&
-        is_doing_challenge.user_id === userId
-      ) {
-        console.log(is_doing_challenge.category.toString(), category);
-        // cek user sedang mengerjakan challenge tersebut?
-        console.log("sedang mengerjakan");
-
+    if (is_doing_challenge != "free") {
+      if (is_doing_challenge === category) {
         const challenge = await historyChallengeModel.findOne({
           user_id: userId,
           category: category,
@@ -53,36 +43,23 @@ export const startChallenge = async (
           ResponseHandler.successResponse(res, 200, "successful", challenge)
         );
       } else {
-        // user sedang mengerjakan challenge lain
-        console.log(is_doing_challenge.category.toString(), category);
-        console.log("User sedang melakukan challenge lain");
         return next(
           ResponseHandler.errorResponse(
             res,
             500,
-            "Anda sedang mengerjakan challenge lain!"
+            "Anda sedang berada di challenge lain!"
           )
         );
       }
     } else {
-      // user pertama kali challenge by history
-      console.log("User pertama kali melakukan pre-test");
       const newChallenge = await historyChallengeModel({
         user_id: userId,
         category: category,
         start_time: Date.now(),
       });
       await newChallenge.save();
-      const data = {
-        category: category,
-        start_time: newChallenge.start_time,
-        user_id: newChallenge.user_id,
-      };
-      res.cookie(`is_doing_challenge:${userId}`, JSON.stringify(data), {
-        maxAge: 900000,
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+      const response = await userModel.findByIdAndUpdate(userId, {
+        is_doing_challenge: category,
       });
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newChallenge)
@@ -105,7 +82,6 @@ export const endChallenge = async (
     const { answer, questionCount } = req.body;
 
     const questionIds = Object.keys(answer).map((id) => id);
-
     const questions = await questionModel.find({
       _id: { $in: questionIds },
     });
@@ -122,26 +98,23 @@ export const endChallenge = async (
       if (isCorrect) correctCount++;
       return {
         question_id: question._id,
-        answer: userAnswer.toUpperCase(), // Assuming the enum values are uppercase
+        answer: userAnswer.toUpperCase(),
         is_correct: isCorrect,
       };
     });
-
     const score = (correctCount / questionCount) * 100;
     const formattedScore = score.toFixed(2);
-
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
       {
         $set: {
           is_finished: true,
           end_time: Date.now(),
-          answers: answersWithCorrectness,
+          answer: answersWithCorrectness,
         },
       },
       { new: true }
     );
-
     if (!challenge) {
       return next(
         ResponseHandler.errorResponse(
@@ -151,8 +124,7 @@ export const endChallenge = async (
         )
       );
     }
-
-    // Create userHistory
+    console.log(challenge);
     const newHistory = await historyModel({
       user_id: userId,
       name: category,
@@ -161,7 +133,10 @@ export const endChallenge = async (
       result: "OK!",
     });
     await newHistory.save();
-    res.clearCookie(`is_doing_challenge:${userId}`);
+    const user = await userModel.findByIdAndUpdate(userId, {
+      $set: { pretest_done: true, is_doing_challenge: "free" },
+    });
+    console.log(user);
     return next(
       ResponseHandler.successResponse(
         res,
@@ -175,24 +150,24 @@ export const endChallenge = async (
   }
 };
 
-export const getAllQuiz = async (
+export const getAllChallenge = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
   next
 ) => {
   try {
-    const finishedQuiz = await historyChallengeModel.find({
+    const finishedChallenge = await historyChallengeModel.find({
       user_id: req.user.id,
       is_finished: true,
     });
-    const unfinishedQuiz = await historyChallengeModel.find({
+    const unfinishedChallenge = await historyChallengeModel.find({
       user_id: req.user.id,
       is_finished: false,
     });
     return next(
       ResponseHandler.successResponse(res, 200, "successful", {
-        finishedQuiz,
-        unfinishedQuiz,
+        finishedChallenge,
+        unfinishedChallenge,
       })
     );
   } catch (error) {
@@ -200,32 +175,34 @@ export const getAllQuiz = async (
   }
 };
 
-export const getDetailFinishedQuiz = async (
+export const getDetailFinishedChallenge = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
   next
 ) => {
   try {
     const { category } = req.params;
-    const question = await questionModel.findOne({ category });
-    const quiz = await historyChallengeModel.findOne({
+    const questions = await questionModel.find({
+      category: { $in: [category] },
+    });
+    const challenge = await historyChallengeModel.findOne({
       user_id: req.user.id,
       category,
       is_finished: true,
     });
-    if (!quiz) {
+    if (!challenge) {
       return next(
         ResponseHandler.errorResponse(
           res,
           404,
-          "Quiz not found or unauthorized"
+          "Challenge not found or unauthorized"
         )
       );
     }
     return next(
       ResponseHandler.successResponse(res, 200, "successful", {
-        quiz,
-        question,
+        challenge,
+        questions,
       })
     );
   } catch (error) {

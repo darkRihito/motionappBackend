@@ -17,13 +17,11 @@ export const register = async (
     if (req.body.role === "admin") {
       const count = await roomModel.countDocuments();
       const generatedcode = `R${(count + 1).toString().padStart(3, "0")}`;
-
       adminRoom = await roomModel({
         room_name: req.body.adminroomname,
         room_code: generatedcode,
       });
       const response = await adminRoom.save();
-
       const newAdmin = await userModel({
         name: req.body.name,
         email: req.body.email,
@@ -63,10 +61,8 @@ export const register = async (
         );
       }
       checkRoom.list_user.push({ userId: newUser._id });
-
       await newUser.save();
       await checkRoom.save();
-
       return next(
         ResponseHandler.successResponse(
           res,
@@ -106,7 +102,6 @@ export const login = async (
         expiresIn: "30d",
       }
     );
-    
     res.cookie("access_token", token, {
       httpOnly: false, // Makes the cookie accessible to client-side JavaScript
       sameSite: "none",
