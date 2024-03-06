@@ -20,10 +20,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: true, // specify the exact origin
+    origin: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 200,
-    credentials: true, // include credentials
+    credentials: true,
   })
 );
 app.use(cookieParser());
@@ -46,16 +46,6 @@ app.get("/isadmin", isAdmin, (req, res) => {
   res.status(200).json({
     success: true,
     messages: "Admin is authenticated",
-  });
-});
-
-app.post("/clearcookies", isAuthenticated, (req, res) => {
-  // res.clearCookie("access_token");
-  const userId = req.user.id;
-
-  res.clearCookie(`is_doing_challenge:${userId}`).status(200).json({
-    success: true,
-    messages: "Clear cookies success!",
   });
 });
 

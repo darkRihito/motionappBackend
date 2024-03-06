@@ -61,9 +61,17 @@ const userSchema = mongoose.Schema(
     },
     is_doing_challenge: {
       type: String,
-      enum: ["pretest", "posttest", "latihan", "free"],
+      enum: ["pretest", "posttest", "practice", "free"],
       default: "free",
     },
+    pretest_done: {
+      type: Boolean,
+      default: false,
+    },
+    posttest_done: {
+      type: Boolean,
+      default: false,
+    }
   },
   { timestamps: true }
 );
