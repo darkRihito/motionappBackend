@@ -81,6 +81,8 @@ export const startChallenge = async (
       res.cookie(`is_doing_challenge:${userId}`, JSON.stringify(data), {
         maxAge: 900000,
         httpOnly: true,
+        secure: true,
+        sameSite: "strict",
       });
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newChallenge)
@@ -113,21 +115,30 @@ export const endChallenge = async (
       );
     }
     let correctCount = 0;
-    questions.forEach((question) => {
+    const answersWithCorrectness = questions.map((question) => {
       const questionId = question._id.toString();
-      if (
-        answer[questionId] &&
-        answer[questionId].toLowerCase() === question.answer.toLowerCase()
-      ) {
-        correctCount++;
-      }
+      const userAnswer = answer[questionId].toLowerCase();
+      const isCorrect = userAnswer === question.answer.toLowerCase();
+      if (isCorrect) correctCount++;
+      return {
+        question_id: question._id,
+        answer: userAnswer.toUpperCase(), // Assuming the enum values are uppercase
+        is_correct: isCorrect,
+      };
     });
+
     const score = (correctCount / questionCount) * 100;
     const formattedScore = score.toFixed(2);
 
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
-      { $set: { is_finished: true, end_time: Date.now() } },
+      {
+        $set: {
+          is_finished: true,
+          end_time: Date.now(),
+          answers: answersWithCorrectness,
+        },
+      },
       { new: true }
     );
 
@@ -158,6 +169,64 @@ export const endChallenge = async (
         "Challenge ended successfully",
         newHistory
       )
+    );
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
+
+export const getAllQuiz = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  try {
+    const finishedQuiz = await historyChallengeModel.find({
+      user_id: req.user.id,
+      is_finished: true,
+    });
+    const unfinishedQuiz = await historyChallengeModel.find({
+      user_id: req.user.id,
+      is_finished: false,
+    });
+    return next(
+      ResponseHandler.successResponse(res, 200, "successful", {
+        finishedQuiz,
+        unfinishedQuiz,
+      })
+    );
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
+
+export const getDetailFinishedQuiz = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  try {
+    const { category } = req.params;
+    const question = await questionModel.findOne({ category });
+    const quiz = await historyChallengeModel.findOne({
+      user_id: req.user.id,
+      category,
+      is_finished: true,
+    });
+    if (!quiz) {
+      return next(
+        ResponseHandler.errorResponse(
+          res,
+          404,
+          "Quiz not found or unauthorized"
+        )
+      );
+    }
+    return next(
+      ResponseHandler.successResponse(res, 200, "successful", {
+        quiz,
+        question,
+      })
     );
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));

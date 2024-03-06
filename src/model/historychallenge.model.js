@@ -17,8 +17,24 @@ const historyChallengeSchema = mongoose.Schema(
     },
     is_finished: {
       type: Boolean,
-      default: false,
+      default: false, 
     },
+    answer: [
+      {
+        question_id: {
+          type: Schema.Types.ObjectId,
+          ref: "Question",
+        },
+        answer: {
+          type: String,
+          enum: ["A", "B", "C", "D"],
+        },
+        is_correct: {
+          type: Boolean,
+          default: false
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
