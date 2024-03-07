@@ -30,3 +30,19 @@ export const getTypeQuestions = async (
     return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
 };
+
+export const getRoomQuestions = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  const { room } = req.params;
+  try {
+    const questions = await questionModel.find({
+      room_code: room,
+    });
+    return ResponseHandler.successResponse(res, 200, "successful", questions);
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
