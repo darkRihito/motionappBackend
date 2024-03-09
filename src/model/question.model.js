@@ -6,6 +6,9 @@ const questionSchema = mongoose.Schema(
       type: Schema.Types.ObjectId,
       ref: "Room",
     },
+    room_code: {
+      type: String,
+    },
     question: {
       type: String,
       required: [true, "Question is required"],

@@ -19,6 +19,26 @@ export const getAllUser = async (
   }
 };
 
+export const getAllUserRoom = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  const { room } = req.params;
+  try {
+    // Fetch all users
+    const users = await userModel
+      .find({ role: "user", room: room })
+      .select("-password");
+    if (!users || users.length === 0) {
+      return next(ResponseHandler.errorResponse(res, 404, "No users found"));
+    }
+    return ResponseHandler.successResponse(res, 200, "success", users);
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
+
 export const getUserId = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
@@ -53,8 +73,12 @@ export const patchUserStatus = async (
 ) => {
   try {
     const userid = req.user.id;
-    const response = await userModel.findByIdAndUpdate(userid, { status: req.body.status }).exec();
-    return next(ResponseHandler.successResponse(res, 200, "successful", response));
+    const response = await userModel
+      .findByIdAndUpdate(userid, { status: req.body.status })
+      .exec();
+    return next(
+      ResponseHandler.successResponse(res, 200, "successful", response)
+    );
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
