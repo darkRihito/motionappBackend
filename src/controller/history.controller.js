@@ -23,7 +23,6 @@ export const getHistoryId = async (
   next
 ) => {
   const userid = req.user.id;
-  console.log(userid);
   try {
     const history = await historyModel
       .find({ user_id: userid })
