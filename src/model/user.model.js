@@ -34,7 +34,6 @@ const userSchema = mongoose.Schema(
         },
         message: "Nickname must not contain spaces",
       },
-      unique: true,
     },
     role: {
       type: String,

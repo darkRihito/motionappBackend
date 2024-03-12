@@ -26,7 +26,7 @@ export const startChallenge = async (
   try {
     const userId = req.user.id;
     const { category } = req.params;
-
+    
     const response = await userModel
       .findOne({ _id: userId })
       .select("is_doing_challenge pretest_done posttest_done")
@@ -52,6 +52,7 @@ export const startChallenge = async (
         );
       }
     } else {
+      console.log("UWUUU")
       const newChallenge = await historyChallengeModel({
         user_id: userId,
         category: category,
@@ -61,6 +62,7 @@ export const startChallenge = async (
       const response = await userModel.findByIdAndUpdate(userId, {
         is_doing_challenge: category,
       });
+
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newChallenge)
       );
