@@ -46,9 +46,6 @@ export const register = async (
         password: hashPaswword,
         room: req.body.room,
         role: req.body.role,
-        challenge_point: 0,
-        qualification: "?",
-        status: "",
       });
       const checkRoom = await roomModel.findOne({ room_code: req.body.room });
       if (!checkRoom) {

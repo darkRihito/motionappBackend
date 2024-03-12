@@ -39,9 +39,12 @@ const historyChallengeSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+historyChallengeSchema.index({ user_id: 1 });
+
 const historyChallengeModel = mongoose.model(
   "HistoryChallenge",
   historyChallengeSchema
 );
+
 
 export default historyChallengeModel;

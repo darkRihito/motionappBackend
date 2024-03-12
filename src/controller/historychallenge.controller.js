@@ -77,10 +77,11 @@ export const endChallenge = async (
   next
 ) => {
   try {
+    // Get user id, category, and answer from request
     const userId = req.user.id;
     const { category } = req.params;
     const { answer, questionCount } = req.body;
-
+    // Check user answer
     const questionIds = Object.keys(answer).map((id) => id);
     const questions = await questionModel.find({
       _id: { $in: questionIds },
@@ -90,6 +91,8 @@ export const endChallenge = async (
         ResponseHandler.errorResponse(res, 404, "Questions not found!")
       );
     }
+
+    // Calculate score
     let correctCount = 0;
     const answersWithCorrectness = questions.map((question) => {
       const questionId = question._id.toString();
@@ -103,7 +106,7 @@ export const endChallenge = async (
       };
     });
     const score = (correctCount / questionCount) * 100;
-    const formattedScore = score.toFixed(2);
+    // Update challenge
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
       {
@@ -124,19 +127,18 @@ export const endChallenge = async (
         )
       );
     }
-    console.log(challenge);
     const newHistory = await historyModel({
       user_id: userId,
       name: category,
-      score: formattedScore,
-      point: formattedScore,
+      score: score,
+      point: score,
       result: "OK!",
     });
     await newHistory.save();
-    const user = await userModel.findByIdAndUpdate(userId, {
+    await userModel.findByIdAndUpdate(userId, {
       $set: { pretest_done: true, is_doing_challenge: "free" },
     });
-    console.log(user);
+
     return next(
       ResponseHandler.successResponse(
         res,
@@ -156,14 +158,18 @@ export const getAllChallenge = async (
   next
 ) => {
   try {
-    const finishedChallenge = await historyChallengeModel.find({
-      user_id: req.user.id,
-      is_finished: true,
-    });
-    const unfinishedChallenge = await historyChallengeModel.find({
-      user_id: req.user.id,
-      is_finished: false,
-    });
+    const finishedChallenge = await historyChallengeModel
+      .find({
+        user_id: req.user.id,
+        is_finished: true,
+      })
+      .select("-answer");
+    const unfinishedChallenge = await historyChallengeModel
+      .find({
+        user_id: req.user.id,
+        is_finished: false,
+      })
+      .select("-answer");
     return next(
       ResponseHandler.successResponse(res, 200, "successful", {
         finishedChallenge,
@@ -185,6 +191,11 @@ export const getDetailFinishedChallenge = async (
     const questions = await questionModel.find({
       category: { $in: [category] },
     });
+    if (!questions.length) {
+      return next(
+        ResponseHandler.errorResponse(res, 404, "Questions not found!")
+      );
+    }
     const challenge = await historyChallengeModel.findOne({
       user_id: req.user.id,
       category,
