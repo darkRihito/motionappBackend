@@ -44,15 +44,18 @@ const userSchema = mongoose.Schema(
     },
     status: {
       type: String,
+      default: "",
     },
     pict_url: {
       type: String,
     },
     challenge_point: {
       type: Number,
+      default: 0,
     },
     qualification: {
       type: String,
+      default: "?"
     },
     admin_room: {
       type: Schema.Types.ObjectId,

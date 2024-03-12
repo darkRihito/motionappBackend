@@ -19,5 +19,7 @@ const roomSchema = mongoose.Schema({
   },
 });
 
+roomSchema.index({ room_code: 1 }, { unique: true });
+
 const roomModel = mongoose.model("Room", roomSchema);
 export default roomModel;

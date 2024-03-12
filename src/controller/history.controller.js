@@ -9,7 +9,7 @@ export const getAllHistory = async (
   try {
     const history = await historyModel.find();
     if (!history || history.length === 0) {
-      return next(ResponseHandler.errorResponse(res, 404, "No users found"));
+      return next(ResponseHandler.errorResponse(res, 404, "No history found"));
     }
     return ResponseHandler.successResponse(res, 200, users);
   } catch (error) {
@@ -23,6 +23,7 @@ export const getHistoryId = async (
   next
 ) => {
   const userid = req.user.id;
+
   try {
     const history = await historyModel
       .find({ user_id: userid })

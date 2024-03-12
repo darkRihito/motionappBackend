@@ -40,6 +40,9 @@ historySchema.pre("save", function (next) {
   next();
 });
 
+
+historySchema.index({ user_id: 1}, { unique: true });
+
 const historyModel = mongoose.model("History", historySchema);
 
 export default historyModel;
