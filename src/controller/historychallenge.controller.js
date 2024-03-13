@@ -26,15 +26,14 @@ export const startChallenge = async (
   try {
     const userId = req.user.id;
     const { category } = req.params;
-    
+
     const response = await userModel
       .findOne({ _id: userId })
       .select("is_doing_challenge pretest_done posttest_done")
       .exec();
-    const is_doing_challenge = response.is_doing_challenge;
 
-    if (is_doing_challenge != "free") {
-      if (is_doing_challenge === category) {
+    if (response.is_doing_challenge != "free") {
+      if (response.is_doing_challenge === category) {
         const challenge = await historyChallengeModel.findOne({
           user_id: userId,
           category: category,
@@ -52,20 +51,37 @@ export const startChallenge = async (
         );
       }
     } else {
-      console.log("UWUUU")
-      const newChallenge = await historyChallengeModel({
-        user_id: userId,
-        category: category,
-        start_time: Date.now(),
-      });
-      await newChallenge.save();
-      const response = await userModel.findByIdAndUpdate(userId, {
-        is_doing_challenge: category,
-      });
+      if (category === "pretest" && response.pretest_done) {
+        return next(
+          ResponseHandler.errorResponse(
+            res,
+            500,
+            "Anda sudah mengerjakan pretest!"
+          )
+        );
+      } else if (category === "posttest" && response.posttest_done) {
+        return next(
+          ResponseHandler.errorResponse(
+            res,
+            500,
+            "Anda sudah mengerjakan posttest!"
+          )
+        );
+      } else {
+        const newChallenge = await historyChallengeModel({
+          user_id: userId,
+          category: category,
+          start_time: Date.now(),
+        });
+        await newChallenge.save();
+        await userModel.findByIdAndUpdate(userId, {
+          is_doing_challenge: category,
+        });
 
-      return next(
-        ResponseHandler.successResponse(res, 200, "successful", newChallenge)
-      );
+        return next(
+          ResponseHandler.successResponse(res, 200, "successful", newChallenge)
+        );
+      }
     }
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));

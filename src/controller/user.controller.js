@@ -30,9 +30,6 @@ export const getAllUserRoom = async (
     const users = await userModel
       .find({ role: "user", room: room })
       .select("-password");
-    if (!users || users.length === 0) {
-      return next(ResponseHandler.errorResponse(res, 404, "No users found"));
-    }
     return ResponseHandler.successResponse(res, 200, "success", users);
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));
