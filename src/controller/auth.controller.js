@@ -13,11 +13,10 @@ export const register = async (
   try {
     const salt = await bcrypt.genSalt(10);
     const hashPaswword = await bcrypt.hash(req.body.password, salt);
-    let adminRoom;
     if (req.body.role === "admin") {
       const count = await roomModel.countDocuments();
       const generatedcode = `R${(count + 1).toString().padStart(3, "0")}`;
-      adminRoom = await roomModel({
+      let adminRoom = await roomModel({
         room_name: req.body.adminroomname,
         room_code: generatedcode,
       });
@@ -49,6 +48,9 @@ export const register = async (
         challenge_point: 0,
         qualification: "?",
         status: "",
+        is_doing_challenge: "free",
+        pretest_done: false,
+        posttest_done: false,
       });
       const checkRoom = await roomModel.findOne({ room_code: req.body.room });
       if (!checkRoom) {
