@@ -13,6 +13,9 @@ const questionSchema = mongoose.Schema(
       type: String,
       required: [true, "Question is required"],
     },
+    explanation: {
+      type: String,
+    },
     answer: {
       type: String,
       required: [true, "Answer is required"],

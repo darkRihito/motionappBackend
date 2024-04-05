@@ -8,7 +8,6 @@ export const getAllUser = async (
   next
 ) => {
   try {
-    // Fetch all users
     const users = await userModel.find({ role: "user" }).select("-password");
     if (!users || users.length === 0) {
       return next(ResponseHandler.errorResponse(res, 404, "No users found"));
@@ -26,7 +25,6 @@ export const getAllUserRoom = async (
 ) => {
   const { room } = req.params;
   try {
-    // Fetch all users
     const users = await userModel
       .find({ role: "user", room: room })
       .select("-password");
@@ -41,17 +39,17 @@ export const getUserId = async (
   /** @type import('express').Response */ res,
   next
 ) => {
+  const userId = req.user.id;
+
   try {
-    const userid = req.user.id;
-    const data = await userModel.findById(userid).exec();
+    const data = await userModel.findById(userId);
     if (req.user.role == "admin") {
-      const admin_room = await roomModel.findById(data.admin_room).exec();
-      const adminrcode = admin_room.room_code;
+      const admin_room = await roomModel.findById(data.admin_room);
       const newData = {
         ...data._doc,
-        admin_room_code: adminrcode,
+        admin_room_code: admin_room.room_code,
+        admin_room_name: admin_room.room_name,
       };
-      data.admin_room_code = adminrcode;
       return next(
         ResponseHandler.successResponse(res, 200, "successful", newData)
       );
@@ -67,11 +65,12 @@ export const patchUserStatus = async (
   /** @type import('express').Response */ res,
   next
 ) => {
+  const userId = req.user.id;
+
   try {
-    const userid = req.user.id;
-    const response = await userModel
-      .findByIdAndUpdate(userid, { status: req.body.status })
-      .exec();
+    const response = await userModel.findByIdAndUpdate(userId, {
+      status: req.body.status,
+    });
     return next(
       ResponseHandler.successResponse(res, 200, "successful", response)
     );
