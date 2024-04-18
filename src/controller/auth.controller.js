@@ -1,10 +1,10 @@
-import userModel from "../model/user.model.js";
-import roomModel from "../model/room.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import userModel from "../model/user.model.js";
+import roomModel from "../model/room.model.js";
+import practiceModel from "../model/practice.model.js";
 import ResponseHandler from "../utils/responseHandler.js";
 
-// User registration
 export const register = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
@@ -46,12 +46,26 @@ export const register = async (
         room: req.body.room,
         role: req.body.role,
         challenge_point: 0,
+        star_collected: 0,
         qualification: "?",
         status: "",
         is_doing_challenge: "free",
         pretest_done: false,
+        pretest_score: -1,
         posttest_done: false,
+        posttest_score: -1,
       });
+
+      let practice = await practiceModel({
+        user_id: newUser._id,
+        stage: 0,
+        correct: 0,
+        knowledge: 0,
+        point_gain: 0,
+        question: {},
+      });
+      await practice.save();
+
       const checkRoom = await roomModel.findOne({ room_code: req.body.room });
       if (!checkRoom) {
         return next(
@@ -79,7 +93,6 @@ export const register = async (
   }
 };
 
-// User login
 export const login = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
@@ -105,12 +118,12 @@ export const login = async (
       }
     );
     res.cookie("access_token", token, {
-      httpOnly: false, // Makes the cookie accessible to client-side JavaScript
+      httpOnly: false,
       sameSite: "none",
-      secure: true, // Recommended to use with sameSite: "none" to ensure cookie is sent over HTTPS
+      secure: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
-    const { password: _,  ...data } = user._doc;
+    const { password: _, ...data } = user._doc;
     data.token = token;
     req.user = user;
     return next(
@@ -121,7 +134,6 @@ export const login = async (
   }
 };
 
-// User logout
 export const logout = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,

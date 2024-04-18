@@ -6,10 +6,11 @@ export const getLeaderboard = async (
   /** @type import('express').Response */ res,
   next
 ) => {
+  const userId = req.user.id;
+
   try {
     // Fetch all users
-    const userid = req.user.id;
-    const current_user = await userModel.findById(userid).exec();
+    const current_user = await userModel.findById(userId);
     const users = await userModel
       .find({ role: "user", room: current_user.room })
       .sort({ challenge_point: -1 })

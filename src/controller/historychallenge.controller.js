@@ -29,9 +29,7 @@ export const startChallenge = async (
 
     const response = await userModel
       .findOne({ _id: userId })
-      .select("is_doing_challenge pretest_done posttest_done")
-      .exec();
-
+      .select("is_doing_challenge pretest_done posttest_done");
     if (response.is_doing_challenge != "free") {
       if (response.is_doing_challenge === category) {
         const challenge = await historyChallengeModel.findOne({
@@ -59,6 +57,14 @@ export const startChallenge = async (
             "Anda sudah mengerjakan pretest!"
           )
         );
+      } else if (category === "posttest" && !response.pretest_done) {
+        return next(
+          ResponseHandler.errorResponse(
+            res,
+            500,
+            "Silakan lakukan pretest terlebih dahulu!"
+          )
+        );
       } else if (category === "posttest" && response.posttest_done) {
         return next(
           ResponseHandler.errorResponse(
@@ -77,7 +83,6 @@ export const startChallenge = async (
         await userModel.findByIdAndUpdate(userId, {
           is_doing_challenge: category,
         });
-
         return next(
           ResponseHandler.successResponse(res, 200, "successful", newChallenge)
         );
@@ -103,11 +108,6 @@ export const endChallenge = async (
     const questions = await questionModel.find({
       _id: { $in: questionIds },
     });
-    if (!questions.length) {
-      return next(
-        ResponseHandler.errorResponse(res, 404, "Questions not found!")
-      );
-    }
     let correctCount = 0;
     const answersWithCorrectness = questions.map((question) => {
       const questionId = question._id.toString();
@@ -122,6 +122,18 @@ export const endChallenge = async (
     });
     const score = (correctCount / questionCount) * 100;
     const formattedScore = score.toFixed(2);
+    let scoreCategory = "";
+    if (score == 100) {
+      scoreCategory = "Sempurna";
+    } else if (score < 100 && score > 79) {
+      scoreCategory = "Sangat Baik";
+    } else if (score < 80 && score > 59) {
+      scoreCategory = "Baik";
+    } else if (score < 60 && score > 39) {
+      scoreCategory = "Cukup";
+    } else {
+      scoreCategory = "Kurang Baik";
+    }
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
       {
@@ -146,13 +158,36 @@ export const endChallenge = async (
       user_id: userId,
       name: category,
       score: formattedScore,
-      point: formattedScore,
-      result: "OK!",
+      result: scoreCategory,
     });
     await newHistory.save();
-    const user = await userModel.findByIdAndUpdate(userId, {
-      $set: { pretest_done: true, is_doing_challenge: "free" },
-    });
+    if (category === "pretest") {
+      const user = await userModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            pretest_done: true,
+            pretest_score: formattedScore,
+            is_doing_challenge: "free",
+            qualification: scoreCategory,
+          },
+        },
+        { new: true }
+      );
+    } else if (category === "posttest") {
+      const user = await userModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            posttest_done: true,
+            pretest_score: formattedScore,
+            is_doing_challenge: "free",
+            qualification: scoreCategory,
+          },
+        },
+        { new: true }
+      );
+    }
     return next(
       ResponseHandler.successResponse(
         res,
@@ -199,11 +234,11 @@ export const getDetailFinishedChallenge = async (
   try {
     const { category } = req.params;
     const questions = await questionModel.find({
-      category: { $in: [category] },
+      category: { $in: [category, "any"] },
     });
     const challenge = await historyChallengeModel.findOne({
       user_id: req.user.id,
-      category,
+      category: category,
       is_finished: true,
     });
     if (!challenge) {

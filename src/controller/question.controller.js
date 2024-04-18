@@ -7,8 +7,7 @@ export const getQuestions = async (
   next
 ) => {
   try {
-    // Fetch all questions
-    const questions = await questionModel.find().exec();
+    const questions = await questionModel.find();
     return ResponseHandler.successResponse(res, 200, "successful", questions);
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));
@@ -21,9 +20,10 @@ export const getTypeQuestions = async (
   next
 ) => {
   const { category } = req.params;
+
   try {
     const questions = await questionModel.find({
-      category: { $in: [category] },
+      category: { $in: [category, "any"] },
     });
     return ResponseHandler.successResponse(res, 200, "successful", questions);
   } catch (error) {
@@ -37,6 +37,7 @@ export const getRoomQuestions = async (
   next
 ) => {
   const { room } = req.params;
+
   try {
     const questions = await questionModel.find({
       room_code: room,
@@ -80,7 +81,7 @@ export const editQuestions = async (
   const { id } = req.params;
   const { question, answer, category, difficulty } = req.body.payload;
 
-  console.log(question, answer, category, difficulty)
+  console.log(question, answer, category, difficulty);
 
   try {
     const updatedQuestion = await questionModel.findByIdAndUpdate(id, {
@@ -97,17 +98,35 @@ export const editQuestions = async (
   }
 };
 
+export const addExplanation = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  const { id } = req.params;
+  const { explanation } = req.body.payload;
+
+  try {
+    const updatedQuestion = await questionModel.findByIdAndUpdate(id, {
+      explanation: explanation,
+    });
+    return next(
+      ResponseHandler.successResponse(res, 200, "successful", updatedQuestion)
+    );
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};
+
 export const deleteQuestions = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
   next
 ) => {
   const { id } = req.params;
-  console.log(id);
 
   try {
     const deletedQuestion = await questionModel.findByIdAndDelete(id);
-    console.log(deleteQuestions);
     return next(
       ResponseHandler.successResponse(res, 200, "successful", deletedQuestion)
     );

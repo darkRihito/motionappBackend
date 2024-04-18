@@ -9,7 +9,7 @@ export const getAllHistory = async (
   try {
     const history = await historyModel.find();
     if (!history || history.length === 0) {
-      return next(ResponseHandler.errorResponse(res, 404, "No users found"));
+      return next(ResponseHandler.errorResponse(res, 404, "No history found"));
     }
     return ResponseHandler.successResponse(res, 200, users);
   } catch (error) {
@@ -22,12 +22,12 @@ export const getHistoryId = async (
   /** @type import('express').Response */ res,
   next
 ) => {
-  const userid = req.user.id;
+  const userId = req.user.id;
+  
   try {
     const history = await historyModel
-      .find({ user_id: userid })
-      .select("-userId -_id")
-      .exec();
+      .find({ user_id: userId })
+      .select("-user_id -_id");
     return next(
       ResponseHandler.successResponse(res, 200, "successful", history)
     );
@@ -41,17 +41,17 @@ export const createHistory = async (
   /** @type import('express').Response */ res,
   next
 ) => {
-  const userid = req.user.id;
+  const userId = req.user.id;
   const { name, score, point, result } = req.body;
-  
+
   try {
     const newHistory = await historyModel({
-      user_id : userid,
+      user_id: userId,
       name: name,
       score: score,
       point: point,
       result: result,
-    })
+    });
     await newHistory.save();
     return ResponseHandler.successResponse(res, 200, newHistory);
   } catch (error) {

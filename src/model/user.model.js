@@ -67,6 +67,15 @@ const userSchema = mongoose.Schema(
     },
     posttest_done: {
       type: Boolean,
+    },
+    pretest_score: {
+      type: Number,
+    },
+    posttest_score: {
+      type: Number,
+    },
+    star_collected: {
+      type: Number,
     }
   },
   { timestamps: true }

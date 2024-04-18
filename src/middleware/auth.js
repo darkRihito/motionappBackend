@@ -1,8 +1,8 @@
-import ResponseHandler from "../utils/responseHandler.js";
 import jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
-
+import ResponseHandler from "../utils/responseHandler.js";
 dotenv.config();
+
 export const isAuthenticated = async (
   /** @type import('express').Request */ req,
   /** @type import('express').Response */ res,
@@ -37,7 +37,6 @@ export const isAdmin = async (
       ResponseHandler.errorResponse(res, 401, "Unauthorized");
     }
     req.user = user;
-
     if (req.user.role == "admin") {
       next();
     } else {
