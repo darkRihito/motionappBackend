@@ -25,6 +25,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://motionapp-backend.vercel.app",
+      "https://motion-client.vercel.app"
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 200,
