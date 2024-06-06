@@ -44,7 +44,7 @@ export const startPractice = async (
       const question = await questionModel.aggregate([
         {
           $match: {
-            category: { $in: ["practice", "any"] },
+            category: { $in: ["structure", "written"] },
             difficulty: "medium",
           },
         },
@@ -108,7 +108,7 @@ export const submitAnswer = async (
 
   try {
     const questions = await questionModel.find({
-      category: { $in: ["practice", "any"] },
+      category: { $in: ["structure", "written"] },
     });
     // const practice = await practiceModel.findOne({
     //   user_id: userId,
@@ -189,7 +189,7 @@ export const submitAnswer = async (
         resultCategory = "Superr";
       } else if (correctCount > 6) {
         starGain = 3;
-        resultCategory = "Amazing";
+        resultCategory = "Awesome";
       } else if (correctCount > 4) {
         starGain = 2;
         resultCategory = "Great";
@@ -198,7 +198,7 @@ export const submitAnswer = async (
         resultCategory = "Nice";
       } else if (correctCount < 3) {
         starGain = 0;
-        resultCategory = "Failed";
+        resultCategory = "Bad";
       }
       const practiceUpdateResponse = await practiceModel.findOneAndUpdate(
         { user_id: userId },
@@ -212,15 +212,86 @@ export const submitAnswer = async (
         { new: true }
       );
       const userData = await userModel.findById(userId);
-      const userUpdateResponse = await userModel.findByIdAndUpdate(userId, {
-        is_doing_challenge: "free",
-        challenge_point: userData.challenge_point + pointGain,
-        star_collected: userData.star_collected + starGain,
-      });
+      const userUpdateResponse = await userModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            is_doing_challenge: "free",
+            challenge_point: userData.challenge_point + pointGain,
+            star_collected: userData.star_collected + starGain,
+          },
+          $inc: {
+            practice_count: 1, // Increment practice_count by 1
+          },
+        },
+        { new: true }
+      );
+      if (userUpdateResponse.practice_count === 1) {
+        userUpdateResponse.achievement[1] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.challenge_point >= 50 &&
+        userUpdateResponse.challenge_point < 100 &&
+        userUpdateResponse.achievement[5] == false
+      ) {
+        userUpdateResponse.achievement[5] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.star_collected >= 5 &&
+        userUpdateResponse.star_collected < 15 &&
+        userUpdateResponse.achievement[4] === false
+      ) {
+        userUpdateResponse.achievement[4] = true;
+        await userUpdateResponse.save();
+      }
+      if (userUpdateResponse.practice_count === 10) {
+        userUpdateResponse.achievement[6] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.challenge_point >= 100 &&
+        userUpdateResponse.challenge_point < 300 &&
+        userUpdateResponse.achievement[7] == false
+      ) {
+        userUpdateResponse.achievement[7] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.star_collected >= 15 &&
+        userUpdateResponse.star_collected < 26 &&
+        userUpdateResponse.achievement[9] === false
+      ) {
+        userUpdateResponse.achievement[9] = true;
+        await userUpdateResponse.save();
+      }
+      if (userUpdateResponse.practice_count === 20) {
+        userUpdateResponse.achievement[12] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.star_collected >= 26 &&
+        userUpdateResponse.achievement[11] === false
+      ) {
+        userUpdateResponse.achievement[11] = true;
+        await userUpdateResponse.save();
+      }
+      if (userUpdateResponse.star_collected === 36) {
+        userUpdateResponse.achievement[15] = true;
+        await userUpdateResponse.save();
+      }
+      if (
+        userUpdateResponse.challenge_point >= 300 &&
+        userUpdateResponse.achievement[16] == false
+      ) {
+        userUpdateResponse.achievement[16] = true;
+        await userUpdateResponse.save();
+      }
       const historyUpdateResponse = await historyModel({
         user_id: userId,
-        name: "Practice",
-        score: isCorrect * 10,
+        name: "practice",
+        score: correctCount * 10,
         point: pointGain,
         result: resultCategory,
       }).save();

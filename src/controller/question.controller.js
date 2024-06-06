@@ -23,7 +23,7 @@ export const getTypeQuestions = async (
 
   try {
     const questions = await questionModel.find({
-      category: { $in: [category, "any"] },
+      category: { $in: [category] },
     });
     return ResponseHandler.successResponse(res, 200, "successful", questions);
   } catch (error) {

@@ -55,7 +55,6 @@ export const register = async (
         posttest_done: false,
         posttest_score: -1,
       });
-
       let practice = await practiceModel({
         user_id: newUser._id,
         stage: 0,

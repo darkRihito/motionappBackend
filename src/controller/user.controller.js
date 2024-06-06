@@ -78,3 +78,22 @@ export const patchUserStatus = async (
     return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
 };
+
+export const patchUserModule = async (
+  /** @type import('express').Request */ req,
+  /** @type import('express').Response */ res,
+  next
+) => {
+  const userId = req.user.id;
+
+  try {
+    const response = await userModel.findByIdAndUpdate(userId, {
+      modules_completed: modules_completed + 1,
+    });
+    return next(
+      ResponseHandler.successResponse(res, 200, "successful", response)
+    );
+  } catch (error) {
+    return next(ResponseHandler.errorResponse(res, 500, error.message));
+  }
+};

@@ -104,10 +104,15 @@ export const endChallenge = async (
     const { category } = req.params;
     const { answer, questionCount } = req.body;
 
+    const user = await userModel.find({
+      _id: userId,
+    });
+
     const questionIds = Object.keys(answer).map((id) => id);
     const questions = await questionModel.find({
       _id: { $in: questionIds },
     });
+    // console.log("DEBUG", answer, "IDS", questionIds);
     let correctCount = 0;
     const answersWithCorrectness = questions.map((question) => {
       const questionId = question._id.toString();
@@ -124,15 +129,15 @@ export const endChallenge = async (
     const formattedScore = score.toFixed(2);
     let scoreCategory = "";
     if (score == 100) {
-      scoreCategory = "Sempurna";
+      scoreCategory = "Perfect";
     } else if (score < 100 && score > 79) {
-      scoreCategory = "Sangat Baik";
+      scoreCategory = "Awesome";
     } else if (score < 80 && score > 59) {
-      scoreCategory = "Baik";
+      scoreCategory = "Good";
     } else if (score < 60 && score > 39) {
-      scoreCategory = "Cukup";
+      scoreCategory = "Enough";
     } else {
-      scoreCategory = "Kurang Baik";
+      scoreCategory = "Bad";
     }
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
@@ -169,24 +174,33 @@ export const endChallenge = async (
             pretest_done: true,
             pretest_score: formattedScore,
             is_doing_challenge: "free",
-            qualification: scoreCategory,
+            "achievement.0": true,
+            // qualification: scoreCategory,
           },
         },
         { new: true }
       );
     } else if (category === "posttest") {
-      const user = await userModel.findByIdAndUpdate(
-        userId,
-        {
-          $set: {
-            posttest_done: true,
-            pretest_score: formattedScore,
-            is_doing_challenge: "free",
-            qualification: scoreCategory,
+      try {
+        const user = await userModel.findByIdAndUpdate(
+          userId,
+          {
+            $set: {
+              posttest_done: true,
+              posttest_score: formattedScore,
+              is_doing_challenge: "free",
+              "achievement.18": true,
+              qualification: calculateQualification(
+                user.pretest_score,
+                formattedScore
+              ),
+            },
           },
-        },
-        { new: true }
-      );
+          { new: true }
+        );
+      } catch (error) {console.log("ERROR BWANG", error)}
+
+      console.log("USERRR", user);
     }
     return next(
       ResponseHandler.successResponse(
@@ -200,6 +214,15 @@ export const endChallenge = async (
     return next(ResponseHandler.errorResponse(res, 500, error.message));
   }
 };
+
+function calculateQualification(pretestScore, postestScore) {
+  const qualification = ((postestScore - pretestScore) / pretestScore) * 100;
+  if (qualification >= 0) {
+    return `+${qualification.toFixed(2)}%`;
+  } else {
+    return `-${qualification.toFixed(2)}%`;
+  }
+}
 
 export const getAllChallenge = async (
   /** @type import('express').Request */ req,
@@ -234,7 +257,7 @@ export const getDetailFinishedChallenge = async (
   try {
     const { category } = req.params;
     const questions = await questionModel.find({
-      category: { $in: [category, "any"] },
+      category: { $in: [category] },
     });
     const challenge = await historyChallengeModel.findOne({
       user_id: req.user.id,
