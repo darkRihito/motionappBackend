@@ -60,7 +60,7 @@ const userSchema = mongoose.Schema(
     },
     is_doing_challenge: {
       type: String,
-      enum: ["pretest", "posttest", "practice", "free"],
+      enum: ["pretest", "posttest", "practice", "structure", "written", "free"],
     },
     pretest_done: {
       type: Boolean,
@@ -76,7 +76,21 @@ const userSchema = mongoose.Schema(
     },
     star_collected: {
       type: Number,
-    }
+    },
+    simulation_count: {
+      type: Number,
+    },
+    practice_count: {
+      type: Number,
+    },
+    modules_completed: {
+      type: [Boolean],
+      default: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    },
+    achievement: {
+      type: [Boolean],
+      default: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    },
   },
   { timestamps: true }
 );

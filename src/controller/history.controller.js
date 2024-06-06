@@ -23,13 +23,26 @@ export const getHistoryId = async (
   next
 ) => {
   const userId = req.user.id;
-  
+
   try {
     const history = await historyModel
       .find({ user_id: userId })
       .select("-user_id -_id");
+
+    const practiceCount = await historyModel.countDocuments({
+      user_id: userId,
+      name: "practice",
+    });
+    const simulationCount = await historyModel.countDocuments({
+      user_id: userId,
+      name: "simulation",
+    });
     return next(
-      ResponseHandler.successResponse(res, 200, "successful", history)
+      ResponseHandler.successResponse(res, 200, "successful", {
+        history,
+        practiceCount,
+        simulationCount,
+      })
     );
   } catch (error) {
     return next(ResponseHandler.errorResponse(res, 500, error.message));

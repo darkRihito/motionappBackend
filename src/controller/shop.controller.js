@@ -17,6 +17,10 @@ export const buyAvatar = async (
       const response = await userModel.findByIdAndUpdate(userId, {
         pict_url: itemUrl,
       });
+      if (itemTarget === 700) {
+        response.achievement[17] = true;
+        await response.save();
+      }
       return next(
         ResponseHandler.successResponse(res, 200, "successful", response)
       );
