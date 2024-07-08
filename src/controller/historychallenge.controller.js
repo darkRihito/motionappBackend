@@ -175,7 +175,6 @@ export const endChallenge = async (
             pretest_score: formattedScore,
             is_doing_challenge: "free",
             "achievement.0": true,
-            // qualification: scoreCategory,
           },
         },
         { new: true }
@@ -198,6 +197,7 @@ export const endChallenge = async (
           },
           { new: true }
         );
+        console.log("POSTTEST UPDATED: " + user);
       } catch (error) {console.log("ERROR BWANG", error)}
 
       console.log("USERRR", user);

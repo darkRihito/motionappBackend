@@ -85,11 +85,42 @@ export const patchUserModule = async (
   next
 ) => {
   const userId = req.user.id;
+  const { index } = req.params;
+
+  console.log(index);
+
+  const moduleIndex = parseInt(index, 10);
 
   try {
-    const response = await userModel.findByIdAndUpdate(userId, {
-      modules_completed: modules_completed + 1,
-    });
+    // Construct the update object using MongoDB's $set operator
+    const update = {
+      [`modules_completed.${moduleIndex}`]: true,
+    };
+
+    // Find the user by ID and update the specific module
+    const response = await userModel.findByIdAndUpdate(
+      userId,
+      { $set: update },
+      { new: true }
+    );
+    // Check how many modules have been completed
+    const completedModulesCount =
+      response.modules_completed.filter(Boolean).length;
+
+    // If all modules are completed, update the achievement
+    if (completedModulesCount === 1) {
+      response.achievement[3] = true;
+      await response.save();
+    }
+    if (completedModulesCount === 5) {
+      response.achievement[8] = true;
+      await response.save();
+    }
+    if (completedModulesCount === 10) {
+      response.achievement[13] = true;
+      await response.save();
+    }
+
     return next(
       ResponseHandler.successResponse(res, 200, "successful", response)
     );
