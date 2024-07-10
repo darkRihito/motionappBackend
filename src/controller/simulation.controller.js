@@ -168,18 +168,18 @@ export const endSimulation = async (
     });
     const score = (correctCount / questionCount) * 100;
     const formattedScore = score.toFixed(2);
-    let scoreCategory = "";
-    if (score == 100) {
-      scoreCategory = "Sempurna";
-    } else if (score < 100 && score > 79) {
-      scoreCategory = "Sangat Baik";
-    } else if (score < 80 && score > 59) {
-      scoreCategory = "Baik";
-    } else if (score < 60 && score > 39) {
-      scoreCategory = "Cukup";
-    } else {
-      scoreCategory = "Kurang Baik";
-    }
+    // let scoreCategory = "";
+    // if (score == 100) {
+    //   scoreCategory = "Sempurna";
+    // } else if (score < 100 && score > 79) {
+    //   scoreCategory = "Sangat Baik";
+    // } else if (score < 80 && score > 59) {
+    //   scoreCategory = "Baik";
+    // } else if (score < 60 && score > 39) {
+    //   scoreCategory = "Cukup";
+    // } else {
+    //   scoreCategory = "Kurang Baik";
+    // }
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
       {
@@ -212,7 +212,7 @@ export const endSimulation = async (
       {
         $set: {
           is_doing_challenge: "free",
-          qualification: scoreCategory,
+          // qualification: scoreCategory,
         },
         $inc: {
           simulation_count: 1,
