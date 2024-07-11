@@ -45,7 +45,7 @@ export const register = async (
         password: hashPaswword,
         room: req.body.room,
         role: req.body.role,
-        challenge_point: 0,
+        challenge_point: 10,
         star_collected: 0,
         qualification: "?",
         status: "",

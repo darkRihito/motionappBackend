@@ -168,6 +168,8 @@ export const endSimulation = async (
     });
     const score = (correctCount / questionCount) * 100;
     const formattedScore = score.toFixed(2);
+
+    
     // let scoreCategory = "";
     // if (score == 100) {
     //   scoreCategory = "Sempurna";
@@ -191,6 +193,7 @@ export const endSimulation = async (
       },
       { new: true }
     );
+    
     if (!challenge) {
       return next(
         ResponseHandler.errorResponse(
@@ -200,11 +203,14 @@ export const endSimulation = async (
         )
       );
     }
+
+    
+    
     const newHistory = await historyModel({
       user_id: userId,
       name: "simulation",
       score: formattedScore,
-      result: scoreCategory,
+      // result: scoreCategory,
     });
     await newHistory.save();
     const user = await userModel.findOneAndUpdate(
@@ -220,6 +226,8 @@ export const endSimulation = async (
       },
       { new: true }
     );
+
+
 
     if (user.simulation_count === 1) {
       user.achievement[2] = true;

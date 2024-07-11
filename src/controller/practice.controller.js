@@ -168,6 +168,7 @@ export const submitAnswer = async (
       }
       correctCount++;
     } else {
+      pointGain -= 5;
       health--;
     }
 
@@ -288,13 +289,15 @@ export const submitAnswer = async (
         userUpdateResponse.achievement[16] = true;
         await userUpdateResponse.save();
       }
-      const historyUpdateResponse = await historyModel({
+      const newHistory = await historyModel({
         user_id: userId,
         name: "practice",
         score: correctCount * 10,
         point: pointGain,
         result: resultCategory,
-      }).save();
+      });
+      await newHistory.save();
+
       const response = {
         isFinished: isFinished,
         isWinning: isWinning,
