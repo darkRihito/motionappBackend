@@ -121,9 +121,9 @@ export const submitAnswer = async (
 
     // console.log("CURR", currentQuestion);
 
-    // const userAnswer = payload.user_answer.toLowerCase();
-    // const isCorrect = userAnswer === currentQuestion.answer.toLowerCase();
-    // const explanation = currentQuestion.explanation;
+    const userAnswer = payload.user_answer.toLowerCase();
+    const isCorrect = userAnswer === currentQuestion.answer.toLowerCase();
+    const explanation = currentQuestion.explanation;
 
     // const p_slip = 0.05;
     // const p_guess = 0.1;
