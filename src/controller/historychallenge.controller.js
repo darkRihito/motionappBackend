@@ -104,7 +104,7 @@ export const endChallenge = async (
     const { category } = req.params;
     const { answer, questionCount } = req.body;
 
-    const user = await userModel.find({
+    const user = await userModel.findOne({
       _id: userId,
     });
 
@@ -139,6 +139,10 @@ export const endChallenge = async (
     } else {
       scoreCategory = "Bad";
     }
+    const qualification_res = calculateQualification(
+      user.pretest_score,
+      formattedScore
+    );
     const challenge = await historyChallengeModel.findOneAndUpdate(
       { category: category, user_id: userId },
       {
@@ -189,18 +193,13 @@ export const endChallenge = async (
               posttest_score: formattedScore,
               is_doing_challenge: "free",
               "achievement.18": true,
-              qualification: calculateQualification(
-                user.pretest_score,
-                formattedScore
-              ),
+              qualification: qualification_res,
             },
           },
           { new: true }
         );
         console.log("POSTTEST UPDATED: " + user);
       } catch (error) {console.log("ERROR BWANG", error)}
-
-      console.log("USERRR", user);
     }
     return next(
       ResponseHandler.successResponse(
@@ -215,12 +214,14 @@ export const endChallenge = async (
   }
 };
 
-function calculateQualification(pretestScore, postestScore) {
-  const qualification = ((postestScore - pretestScore) / pretestScore) * 100;
+function calculateQualification(pretestScore, posttestScore) {
+  console.log("PO", posttestScore, "PR",pretestScore);
+  const qualification = ((posttestScore - pretestScore) / pretestScore) * 100;
+  console.log("QUALIFICATION:", qualification);
   if (qualification >= 0) {
-    return `+${qualification.toFixed(2)}%`;
+    return `${qualification.toFixed(0)}%`;
   } else {
-    return `-${qualification.toFixed(2)}%`;
+    return `${qualification.toFixed(0)}%`;
   }
 }
 

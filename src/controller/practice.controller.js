@@ -121,9 +121,38 @@ export const submitAnswer = async (
 
     // console.log("CURR", currentQuestion);
 
-    const userAnswer = payload.user_answer.toLowerCase();
-    const isCorrect = userAnswer === currentQuestion.answer.toLowerCase();
-    const explanation = currentQuestion.explanation;
+    // const userAnswer = payload.user_answer.toLowerCase();
+    // const isCorrect = userAnswer === currentQuestion.answer.toLowerCase();
+    // const explanation = currentQuestion.explanation;
+
+    // const p_slip = 0.05;
+    // const p_guess = 0.1;
+    // const p_transit = 0.1;
+
+    // function updateKnowledge(isCorrect, currentKnowledge) {
+    //   let p_learn;
+
+    //   if (isCorrect) {
+    //     p_learn =
+    //       (currentKnowledge * (1 - p_slip)) /
+    //       (currentKnowledge * (1 - p_slip) + (1 - currentKnowledge) * p_guess);
+    //   } else {
+    //     p_learn =
+    //       (currentKnowledge * p_slip) /
+    //       (currentKnowledge * p_slip + (1 - currentKnowledge) * (1 - p_guess));
+    //   }
+
+    //   currentKnowledge = p_learn + (1 - p_learn) * p_transit;
+    //   return currentKnowledge;
+    // }
+
+    // function getProbabilityKnown(knowledge) {
+    //   return knowledge;
+    // }
+
+    // // Penggunaan fungsi
+    // let newKnowledge = updateKnowledge(isCorrect, payload.knowledge);
+    // let probabilityKnown = getProbabilityKnown(newKnowledge);
 
     let guessRate = 0.1;
     let slipRate = 0.05;
@@ -156,6 +185,7 @@ export const submitAnswer = async (
     let pointGain = payload.point_gain;
     let starGain = 0;
     let nextQuestion = "";
+    let pointBonus = 0;
 
     // Pembobotan soal dan poin
     if (isCorrect) {
@@ -168,20 +198,28 @@ export const submitAnswer = async (
       }
       correctCount++;
     } else {
-      pointGain -= 5;
-      health--;
+      pointGain = pointGain - 2;
+      if (health != 0) {
+        health--;
+      }
     }
 
-    if (health === 0) {
-      isFinished = true;
-      isWinning = false;
-    }
+    // if (health === 0) {
+    //   isFinished = true;
+    //   isWinning = false;
+    // }
     if (payload.stage === 9) {
       isFinished = true;
       isWinning = true;
     }
 
     if (isFinished) {
+      console.log("PB1", pointBonus);
+
+      pointBonus=health*5;
+      console.log("PB2", pointBonus);
+
+      pointGain=pointGain+(health*5);
       if (correctCount === 10) {
         starGain = 5;
         resultCategory = "Perfect";
@@ -289,6 +327,7 @@ export const submitAnswer = async (
         userUpdateResponse.achievement[16] = true;
         await userUpdateResponse.save();
       }
+
       const newHistory = await historyModel({
         user_id: userId,
         name: "practice",
@@ -297,6 +336,8 @@ export const submitAnswer = async (
         result: resultCategory,
       });
       await newHistory.save();
+
+      console.log("PB3", pointBonus);
 
       const response = {
         isFinished: isFinished,
@@ -310,6 +351,7 @@ export const submitAnswer = async (
         },
         curCorrect: correctCount,
         curPoint: pointGain,
+        pointBonus: pointBonus,
         addPoint: pointGain - payload.point_gain,
         starGain: starGain,
         curStage: payload.stage + 1,
