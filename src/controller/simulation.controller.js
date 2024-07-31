@@ -45,7 +45,7 @@ export const startSimulation = async (
               { $match: { category: "written" } },
               { $sample: { size: 15 } },
             ]);
-            questions = [...writtenQuestions, ...structureQuestions];
+            questions = [...structureQuestions, ...writtenQuestions];
           }
           const questionIds = questions.map((q) => ({
             question: q.question,
@@ -85,7 +85,7 @@ export const startSimulation = async (
               { $match: { category: "written" } },
               { $sample: { size: 15 } },
             ]);
-            questions = [...writtenQuestions, ...structureQuestions];
+            questions = [...structureQuestions, ...writtenQuestions];
           }
           const questionIds = questions.map((q) => ({
             question: q.question,

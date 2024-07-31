@@ -13,7 +13,7 @@ export const getLeaderboard = async (
     const current_user = await userModel.findById(userId);
     const users = await userModel
       .find({ role: "user", room: current_user.room })
-      .sort({ challenge_point: -1 })
+      .sort({ star_collected: -1 })
       .select("-password");
     if (!users || users.length === 0) {
       return next(ResponseHandler.errorResponse(res, 404, "No users found"));
